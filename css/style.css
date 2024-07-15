@@ -20,7 +20,6 @@ body {
   width: 200px;
   background-color: #f4f4f4;
   padding: 15px;
-  min-height: 100vh;
   height: auto;
 }
 
@@ -104,10 +103,16 @@ body {
   background-color: #0056b3;
 }
 
+@media (max-width: 1920px) {
+  .task-sidebar {
+    min-height: 100vh;
+  }
+}
+
 @media (max-width: 768px) {
   .task-sidebar {
     width: 100%;
-    height: auto;
+    min-height: 5vh;
   }
 
   .task-container {
@@ -121,7 +126,7 @@ body {
 
 @media (max-width: 576px) {
   .task-top-bar {
-    font-size: 20px;
+    font-size: 40px;
     padding: 10px;
   }
 
