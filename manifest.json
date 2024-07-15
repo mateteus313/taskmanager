@@ -35,5 +35,21 @@
         "src": "/images/icons/icon512x512.png",
         "type": "image/png", "sizes": "512x512"
       }
+    ],
+    "screenshots": [
+      {
+       "src": "/images/icons/icon512x512.png",
+        "sizes": "512x512",
+        "type": "image/png",
+        "form_factor": "wide",
+        "label": "Task Manager"
+      },
+      {
+        "src": "/images/icons/icon512x512.png",
+         "sizes": "512x512",
+         "type": "image/png",
+         "form_factor": "narrow",
+         "label": "Task Manager"
+       }
     ]
   }
