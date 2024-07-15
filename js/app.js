@@ -1,11 +1,11 @@
-// if ("serviceWorker" in navigator) {
-//   window.addEventListener("load", function () {
-//     navigator.serviceWorker
-//       .register("/serviceWorker.js")
-//       .then((res) => console.log("service worker registered"))
-//       .catch((err) => console.log("service worker not registered", err));
-//   });
-// }
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker
+      .register("/serviceWorker.js")
+      .then((res) => console.log("service worker registered"))
+      .catch((err) => console.log("service worker not registered", err));
+  });
+}
 
 function initIndexedDB() {
   const dbName = "task-manager";
@@ -25,14 +25,13 @@ function initIndexedDB() {
       keyPath: "id",
       autoIncrement: true,
     });
-    objectStore.createIndex("title", "title", { unique: false }); // Optional index for searching by title
+    objectStore.createIndex("title", "title", { unique: false });
   };
 }
 
-// Call the initialization function at the beginning of your app:
 initIndexedDB();
 
-let db; // Global variable to store the IndexedDB database object
+let db;
 
 function showContent(page) {
   var content = document.getElementById("page-content");
