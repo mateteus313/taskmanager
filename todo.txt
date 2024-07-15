@@ -1,0 +1,25 @@
+Tarefa com nome vazio(x)
+Tarefa sobre outra Tarefa(x)
+Tarefa arrastada para qualquer lugar(x)
+Limpar Modal(x)
+Deletar tarefa(x)
+Data vencimento tarefa(x)
+data ao editar está errada(x)
+Hora de criação(x)
+Separar arquivos(scripts,css,etc)(x)
+alocar tarefas(x)
+deletar tarefa no banco(x)
+editar tarefa no banco(x)
+pegar em qual tabela a tarefa está(ao editar a tarefa estando na parte de 'doing', a tarefa é teleportada para a primeira tabela)(x)
+configurar para no 'drop' setar um novo valor para a chave 'list' no banco(x)
+'doing' lista sem nenhuma tarefa, a proxima arrastada para la acaba ficando por baixo do botao(botao tem que vir sempre embaixo)(x)
+
+
+Classe de logs
+Duplo toque para mostrar tarefa
+Marcar em vermelho campos nao preenchidos ao criar tarefa
+reativar cache e colocar para salvar cache a cada tarefa inserida e ao loadar a pagina de tarefa(serviceWorker)
+converter data de vencimento
+erro listener no console
+compilar projeto para apk
+registro simples de primeiro acesso
