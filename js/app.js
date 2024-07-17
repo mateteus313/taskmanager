@@ -1,11 +1,14 @@
-// if ("serviceWorker" in navigator) {
-//   window.addEventListener("load", function () {
-//     navigator.serviceWorker
-//       .register("/serviceWorker.js")
-//       .then((res) => console.log("service worker registered"))
-//       .catch((err) => console.log("service worker not registered", err));
-//   });
-// }
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker
+      .register("/serviceWorker.js")
+      .then((res) => {
+        console.log("service worker registered");
+        res.sync.register('sync-notification');
+      })
+      .catch((err) => console.log("service worker not registered", err));
+  });
+}
 
 function initIndexedDB() {
   const dbName = "task-manager";
@@ -91,7 +94,7 @@ function showContent(page) {
         editButton.innerHTML = "Edit";
 
         expirationDateLabel.id = expirationDate;
-        expirationDateLabel.innerHTML = expirationDate;
+        expirationDateLabel.innerHTML = convertDate(expirationDate);
         expirationDateLabel.classList.add("expiration-date-label");
 
         taskFooterDiv.classList.add("task-footer");
