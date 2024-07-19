@@ -81,6 +81,7 @@ function showContent(page) {
         let expirationDate      = task["expirationDate"];
         let id                  = task["id"];
         let list                = task["list"];
+        let status              = task["status"];
 
         newItem.setAttribute("draggable", true);
         newItem.setAttribute("ondragstart", "drag(event)");
@@ -102,6 +103,12 @@ function showContent(page) {
 
         newItem.append(taskFooterDiv);
 
+        if(status == 2) {
+          newItem.style.backgroundColor = '#fff87d';
+        } else if (status == 3) {
+          newItem.style.backgroundColor = '#fc6f6f';
+        }
+
         if(list == 'todo-list') {
           todoList.appendChild(newItem);
         } else if (list == 'doing-list') {
@@ -109,6 +116,7 @@ function showContent(page) {
         } else if (list == 'completed-list') {
           completedList.appendChild(newItem);
         }
+
       });
     };
 
@@ -224,7 +232,7 @@ function saveTaskEdition(editedValues) {
   var request     = objectStore.get(taskId);
 
   request.onsuccess = function (event) {
-    const objectToUpdate = event.target.result;
+    const objectToUpdate    = event.target.result;
 
     objectToUpdate["title"]             = editedValues[0];
     objectToUpdate["type"]              = editedValues[1];
@@ -281,11 +289,12 @@ function saveTask() {
   let creationDate = new Date().toLocaleString();
   let id = "item" + new Date().getTime();
   let list = 'todo-list';
+  let status = 1;
 
   if (title && expirationDate && description) {
     const transaction = db.transaction(["tasks"], "readwrite");
     const objectStore = transaction.objectStore("tasks");
-    const task = { id, creationDate, title, type, description, expirationDate, list};
+    const task = { id, creationDate, title, type, description, expirationDate, list, status};
 
     const addRequest = objectStore.add(task);
 
