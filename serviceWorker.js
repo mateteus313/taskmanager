@@ -35,6 +35,8 @@ async function syncTasksAndNotify() {
       setTaskStatus(task, 2);
     } else if (dateInfo == 'expired') {
       setTaskStatus(task, 3);
+    } else if (dateInfo == 'not expired') {
+      setTaskStatus(task, 1);
     }
   });
 }

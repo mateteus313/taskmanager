@@ -86,7 +86,18 @@ function showContent(page) {
         newItem.setAttribute("draggable", true);
         newItem.setAttribute("ondragstart", "drag(event)");
         newItem.id = id;
-        newItem.innerHTML = `${creationDate}<hr><strong>${title}</strong><br><em>${type}</em><br>${description}<br><hr>`;
+        newItem.innerHTML =   `${creationDate}
+                              ${(list == 'todo-list') 
+                                ? '<button id="start-task">></button>'
+                                : '<button id="start-task" style="display: none;">></button>'}
+                              <hr>
+                              <strong>${title}</strong>
+                              <br>
+                              <em>${type}</em>
+                              <br>
+                              ${description}
+                              <br>
+                              <hr>`;
 
         editButton.classList.add("task-edit-button");
         editButton.onclick = (e) => {
@@ -103,7 +114,9 @@ function showContent(page) {
 
         newItem.append(taskFooterDiv);
 
-        if(status == 2) {
+        if(status == 1) {
+          newItem.style.backgroundColor = 'white';
+        }else if(status == 2) {
           newItem.style.backgroundColor = '#fff87d';
         } else if (status == 3) {
           newItem.style.backgroundColor = '#fc6f6f';
@@ -117,6 +130,8 @@ function showContent(page) {
           completedList.appendChild(newItem);
         }
 
+        startTaskButton(newItem.id, newItem);
+
       });
     };
 
@@ -128,6 +143,30 @@ function showContent(page) {
       alert("Failed to load tasks. Please refresh the page.");
     };
   }
+}
+
+function startTaskButton(taskId, newItem) {
+  let startTaskButton = document.getElementById("start-task");
+  let doingList       = document.getElementById("doing");
+
+  startTaskButton.addEventListener('click', () => {
+    var transaction = db.transaction("tasks", "readwrite");
+    var objectStore = transaction.objectStore("tasks");
+    var request     = objectStore.get(taskId);
+    
+    request.onsuccess = function (event) {
+      var objectToUpdate = event.target.result;
+      objectToUpdate["list"] = 'doing-list';
+      
+      var taskUpdate = objectStore.put(objectToUpdate);
+      
+      taskUpdate.onerror = (event) => {
+        console.log("Error:", event.target.error);
+      };
+    }
+    doingList.appendChild(newItem);
+    startTaskButton.style.display = 'none';
+  })
 }
 
 function allowDrop(event) {
@@ -159,15 +198,19 @@ function drop(event) {
 
     request.onsuccess = function (event) {
       var objectToUpdate = event.target.result;
+      let startTaskButton = document.getElementById("start-task");
 
       if (listName == 'tasks') {
         objectToUpdate["list"] = 'todo-list';
+        startTaskButton.style.display = 'block';
       }
       if (listName == 'doing') {
         objectToUpdate["list"] = 'doing-list';
+        startTaskButton.style.display = 'none';
       }
       if (listName == 'completed') {
         objectToUpdate["list"] = 'completed-list';
+        startTaskButton.style.display = 'none';
       }
   
       var requestUpdate = objectStore.put(objectToUpdate);
