@@ -87,9 +87,7 @@ function showContent(page) {
         newItem.setAttribute("ondragstart", "drag(event)");
         newItem.id = id;
         newItem.innerHTML =   `${creationDate}
-                              ${(list == 'todo-list') 
-                                ? '<button id="start-task">></button>'
-                                : '<button id="start-task" style="display: none;">></button>'}
+                              <button id="next-task-list-${id}" onclick="nextTaskList(${id})">></button>
                               <hr>
                               <strong>${title}</strong>
                               <br>
@@ -128,10 +126,9 @@ function showContent(page) {
           doingList.appendChild(newItem);
         } else if (list == 'completed-list') {
           completedList.appendChild(newItem);
+          var nextTaskButton  = document.getElementById(`next-task-list-${id}`);
+          nextTaskButton.style.display = 'none';
         }
-
-        startTaskButton(newItem.id, newItem);
-
       });
     };
 
@@ -145,28 +142,23 @@ function showContent(page) {
   }
 }
 
-function startTaskButton(taskId, newItem) {
-  let startTaskButton = document.getElementById("start-task");
-  let doingList       = document.getElementById("doing");
-
-  startTaskButton.addEventListener('click', () => {
-    var transaction = db.transaction("tasks", "readwrite");
-    var objectStore = transaction.objectStore("tasks");
-    var request     = objectStore.get(taskId);
+function nextTaskList(id) {
+  var transaction     = db.transaction("tasks", "readwrite");
+  var objectStore     = transaction.objectStore("tasks");
+  var request         = objectStore.get(id.id);
+  
+  request.onsuccess = function (event) {
+    var objectToUpdate = event.target.result;
+    if (objectToUpdate["list"] == "doing-list") { objectToUpdate["list"] = 'completed-list'; }
+    if (objectToUpdate["list"] == "todo-list") { objectToUpdate["list"] = 'doing-list'; }
     
-    request.onsuccess = function (event) {
-      var objectToUpdate = event.target.result;
-      objectToUpdate["list"] = 'doing-list';
-      
-      var taskUpdate = objectStore.put(objectToUpdate);
-      
-      taskUpdate.onerror = (event) => {
-        console.log("Error:", event.target.error);
-      };
-    }
-    doingList.appendChild(newItem);
-    startTaskButton.style.display = 'none';
-  })
+    var taskUpdate = objectStore.put(objectToUpdate);
+    
+    taskUpdate.onerror = (event) => {
+      console.log("Error:", event.target.error);
+    };
+  }
+  showContent('task');
 }
 
 function allowDrop(event) {
@@ -179,17 +171,18 @@ function drag(event) {
 
 function drop(event) {
   event.preventDefault();
-  var data        = event.dataTransfer.getData("text");
-  var item        = document.getElementById(data);
-  var isAnList    = event.target.classList.contains("task-list");
+  var data            = event.dataTransfer.getData("text");
+  var item            = document.getElementById(data);
+  var isAnList        = event.target.classList.contains("task-list");
+  var nextTaskButton  = document.getElementById(item.childNodes[1].id);
 
   if (isAnList) {
     event.target.appendChild(item);
 
     var listName = '';
-    if(event.target.children.tasks)     { listName = 'tasks'; }
-    if(event.target.children.doing)     { listName = 'doing'; }
-    if(event.target.children.completed) { listName = 'completed'; }
+    if(event.target.children.tasks)     { listName = 'tasks'; nextTaskButton.style.display = 'block' }
+    if(event.target.children.doing)     { listName = 'doing'; nextTaskButton.style.display = 'block' }
+    if(event.target.children.completed) { listName = 'completed'; nextTaskButton.style.display = 'none' }
 
     var taskId      = event.target.lastChild.id;
     var transaction = db.transaction("tasks", "readwrite");
@@ -198,19 +191,15 @@ function drop(event) {
 
     request.onsuccess = function (event) {
       var objectToUpdate = event.target.result;
-      let startTaskButton = document.getElementById("start-task");
 
       if (listName == 'tasks') {
         objectToUpdate["list"] = 'todo-list';
-        startTaskButton.style.display = 'block';
       }
       if (listName == 'doing') {
         objectToUpdate["list"] = 'doing-list';
-        startTaskButton.style.display = 'none';
       }
       if (listName == 'completed') {
         objectToUpdate["list"] = 'completed-list';
-        startTaskButton.style.display = 'none';
       }
   
       var requestUpdate = objectStore.put(objectToUpdate);
