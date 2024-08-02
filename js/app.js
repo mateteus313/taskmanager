@@ -44,15 +44,17 @@ function showContent(page) {
     content.innerHTML = `
                 <div class="task-list-container">
                     <div class="task-list" ondrop="drop(event)" ondragover="allowDrop(event)">
-                        <h2>Tasks</h2>
+                        <h2 onclick="collapseList(tasks)">Tasks</h2>
                         <button class="add-btn" onclick="openModal('create')">Add Task</button>
                         <ul id="tasks"></ul>
                     </div>
                     <div class="task-list" ondrop="drop(event)" ondragover="allowDrop(event)">
+                        <div></div>
                         <h2>Doing</h2>
                         <ul id="doing"></ul>
                     </div>
                     <div class="task-list" ondrop="drop(event)" ondragover="allowDrop(event)">
+                        <div></div>
                         <h2>Completed</h2>
                         <ul id="completed"></ul>
                     </div>
@@ -72,8 +74,11 @@ function showContent(page) {
       tasks.forEach((task) => {
         var newItem             = document.createElement("li");
         var editButton          = document.createElement("button");
+        var nextTaskButton      = document.createElement("button");
         var expirationDateLabel = document.createElement("span");
         var taskFooterDiv       = document.createElement("div");
+        var taskDiv             = document.createElement("div");
+        var taskDivTitle        = document.createElement("h2");
         let creationDate        = task["creationDate"];
         let title               = task["title"];
         let type                = task["type"];
@@ -86,8 +91,7 @@ function showContent(page) {
         newItem.setAttribute("draggable", true);
         newItem.setAttribute("ondragstart", "drag(event)");
         newItem.id = id;
-        newItem.innerHTML =   `${creationDate}
-                              <button id="next-task-list-${id}" onclick="nextTaskList(${id})">></button>
+        newItem.innerHTML =   `<div class="task-list-header">${creationDate}</div>
                               <hr>
                               <strong>${title}</strong>
                               <br>
@@ -107,26 +111,44 @@ function showContent(page) {
         expirationDateLabel.innerHTML = convertDate(expirationDate);
         expirationDateLabel.classList.add("expiration-date-label");
 
+        nextTaskButton.innerHTML = ">";
+        nextTaskButton.id = `next-task-list-button-${id}`;
+        nextTaskButton.onclick = (e) => {
+          nextTaskList(id);
+        }
+        nextTaskButton.classList.add("next-task-list-button");
+
         taskFooterDiv.classList.add("task-footer");
-        taskFooterDiv.append(editButton, expirationDateLabel);
+        taskFooterDiv.append(editButton, expirationDateLabel, nextTaskButton);
 
         newItem.append(taskFooterDiv);
+
+        taskDivTitle.innerHTML = title;
+        taskDivTitle.style.display = 'none';
+        taskDivTitle.classList = "task-div-title";
+        taskDiv.id = `task-div-element-${id}`;
+        taskDiv.append(taskDivTitle);
+        taskDiv.append(newItem);
 
         if(status == 1) {
           newItem.style.backgroundColor = 'white';
         }else if(status == 2) {
           newItem.style.backgroundColor = '#fff87d';
         } else if (status == 3) {
-          newItem.style.backgroundColor = '#fc6f6f';
+          newItem.style.backgroundColor = 'rgb(255,167,167)';
         }
 
+        if (status == 3) {
+          nextTaskButton.style.display = 'none';
+        }
         if(list == 'todo-list') {
-          todoList.appendChild(newItem);
-        } else if (list == 'doing-list') {
-          doingList.appendChild(newItem);
-        } else if (list == 'completed-list') {
-          completedList.appendChild(newItem);
-          var nextTaskButton  = document.getElementById(`next-task-list-${id}`);
+          todoList.appendChild(taskDiv);
+        }
+        if (list == 'doing-list') {
+          doingList.appendChild(taskDiv);
+        }
+        if (list == 'completed-list') {
+          completedList.appendChild(taskDiv);
           nextTaskButton.style.display = 'none';
         }
       });
@@ -142,10 +164,34 @@ function showContent(page) {
   }
 }
 
+function collapseList(list) {
+  const taskDivsInList = list.childNodes;
+
+  for (var i = 0; i < taskDivsInList.length; i++) {
+    if (taskDivsInList[i].children[1].classList == 'hidden') {
+      taskDivsInList[i].children[0].style.display = 'none';
+      taskDivsInList[i].children[1].classList = '';
+      taskDivsInList[i].children[1].style.display = 'block';
+      taskDivsInList[i].children[0].onclick = '';
+    } else {
+      taskDivsInList[i].children[0].style.display = 'block';
+      taskDivsInList[i].children[1].classList = 'hidden';
+      taskDivsInList[i].children[1].style.display = 'none';
+      taskDivsInList[i].children[0].onclick = (e) => { collapseListItem(e.target, e.target.nextSibling) };
+    }
+  }
+}
+
+function collapseListItem(title, item) {
+  title.style.display = 'none';
+  //item.classList = '';
+  item.style.display = 'block';
+}
+
 function nextTaskList(id) {
   var transaction     = db.transaction("tasks", "readwrite");
   var objectStore     = transaction.objectStore("tasks");
-  var request         = objectStore.get(id.id);
+  var request         = objectStore.get(id);
   
   request.onsuccess = function (event) {
     var objectToUpdate = event.target.result;
@@ -172,19 +218,23 @@ function drag(event) {
 function drop(event) {
   event.preventDefault();
   var data            = event.dataTransfer.getData("text");
-  var item            = document.getElementById(data);
+  var item            = document.getElementById(`task-div-element-${data}`);
   var isAnList        = event.target.classList.contains("task-list");
-  var nextTaskButton  = document.getElementById(item.childNodes[1].id);
+  var nextTaskButton  = document.getElementById(`next-task-list-button-${item.id.split('-')[3]}`);
+
+  const isTaskExpired = (item.childNodes[1].style.backgroundColor == 'rgb(255, 167, 167)');
 
   if (isAnList) {
-    event.target.appendChild(item);
+    event.target.children[2].append(item);
 
     var listName = '';
-    if(event.target.children.tasks)     { listName = 'tasks'; nextTaskButton.style.display = 'block' }
-    if(event.target.children.doing)     { listName = 'doing'; nextTaskButton.style.display = 'block' }
+    if(event.target.children.tasks && !isTaskExpired) { listName = 'tasks'; nextTaskButton.style.display = 'block' }
+    if(event.target.children.doing && !isTaskExpired) { listName = 'doing'; nextTaskButton.style.display = 'block' }
     if(event.target.children.completed) { listName = 'completed'; nextTaskButton.style.display = 'none' }
 
-    var taskId      = event.target.lastChild.id;
+    if (isTaskExpired) { return; }
+
+    var taskId      = event.target.children[2].lastChild.id.split('-')[3];
     var transaction = db.transaction("tasks", "readwrite");
     var objectStore = transaction.objectStore("tasks");
     var request     = objectStore.get(taskId);
