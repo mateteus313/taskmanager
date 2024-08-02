@@ -40,6 +40,14 @@ body {
   padding: 20px;
 }
 
+.task-div-title {
+  font-size: 20px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  padding: 5px;
+  margin-top: 5px;
+}
+
 .task-list-container {
   display: flex;
   flex-wrap: wrap;
@@ -84,7 +92,16 @@ body {
 
 .task-footer {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
+  flex-direction: column;
+  flex-wrap: wrap;
+  align-content: center;
+  align-items: center;
+}
+
+.next-task-list-button {
+  border: outset;
+  width: 50%;
 }
 
 .add-btn {
