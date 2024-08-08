@@ -50,12 +50,12 @@ function showContent(page) {
                     </div>
                     <div class="task-list" ondrop="drop(event)" ondragover="allowDrop(event)">
                         <div></div>
-                        <h2>Doing</h2>
+                        <h2 onclick="collapseList(doing)">Doing</h2>
                         <ul id="doing"></ul>
                     </div>
                     <div class="task-list" ondrop="drop(event)" ondragover="allowDrop(event)">
                         <div></div>
-                        <h2>Completed</h2>
+                        <h2 onclick="collapseList(completed)">Completed</h2>
                         <ul id="completed"></ul>
                     </div>
                 </div>
@@ -183,7 +183,7 @@ function collapseList(list) {
       tasksInsideList[i].children[1].classList = 'hidden';
       tasksInsideList[i].children[1].style.display = 'none';
       tasksInsideList[i].children[0].onclick = '';
-      tasksInsideList[i].children[0].onclick = (e) => { collapseListItem(e.target, e.target.nextSibling) };
+      tasksInsideList[i].children[0].onclick = (e) => { showListItem(e.target, e.target.nextSibling) };
     }
   }
 }
@@ -195,10 +195,10 @@ function hideListItem(item) {
   _item.children[1].classList = 'hidden';
   _item.children[1].style.display = 'none';
   _item.children[0].onclick = '';
-  _item.children[0].onclick = (e) => { collapseListItem(e.target, e.target.nextSibling) };
+  _item.children[0].onclick = (e) => { showListItem(e.target, e.target.nextSibling) };
 }
 
-function collapseListItem(title, item) {
+function showListItem(title, item) {
   title.style.display = 'none';
   item.classList = '';
   item.style.display = 'block';
