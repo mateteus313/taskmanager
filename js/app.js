@@ -72,13 +72,13 @@ function showContent(page) {
       let completedList = document.getElementById("completed");
 
       tasks.forEach((task) => {
-        var newItem             = document.createElement("li");
-        var editButton          = document.createElement("button");
-        var nextTaskButton      = document.createElement("button");
-        var expirationDateLabel = document.createElement("span");
-        var taskFooterDiv       = document.createElement("div");
-        var taskDiv             = document.createElement("div");
-        var taskDivTitle        = document.createElement("h2");
+        let newItem             = document.createElement("li");
+        let editButton          = document.createElement("button");
+        let nextTaskButton      = document.createElement("button");
+        let expirationDateLabel = document.createElement("span");
+        let taskFooterDiv       = document.createElement("div");
+        let taskDiv             = document.createElement("div");
+        let taskDivTitle        = document.createElement("h2");
         let creationDate        = task["creationDate"];
         let title               = task["title"];
         let type                = task["type"];
@@ -91,7 +91,7 @@ function showContent(page) {
         newItem.setAttribute("draggable", true);
         newItem.setAttribute("ondragstart", "drag(event)");
         newItem.id = id;
-        newItem.innerHTML =   `<div class="task-list-header">${creationDate}</div>
+        newItem.innerHTML =   `<div class="task-list-header" onclick="hideListItem(${id})">${creationDate}</div>
                               <hr>
                               <strong>${title}</strong>
                               <br>
@@ -102,7 +102,7 @@ function showContent(page) {
                               <hr>`;
 
         editButton.classList.add("task-edit-button");
-        editButton.onclick = (e) => {
+        editButton.onclick = () => {
           editTask(id);
         };
         editButton.innerHTML = "Edit";
@@ -113,7 +113,7 @@ function showContent(page) {
 
         nextTaskButton.innerHTML = ">";
         nextTaskButton.id = `next-task-list-button-${id}`;
-        nextTaskButton.onclick = (e) => {
+        nextTaskButton.onclick = () => {
           nextTaskList(id);
         }
         nextTaskButton.classList.add("next-task-list-button");
@@ -130,26 +130,30 @@ function showContent(page) {
         taskDiv.append(taskDivTitle);
         taskDiv.append(newItem);
 
-        if(status == 1) {
-          newItem.style.backgroundColor = 'white';
-        }else if(status == 2) {
-          newItem.style.backgroundColor = '#fff87d';
-        } else if (status == 3) {
-          newItem.style.backgroundColor = 'rgb(255,167,167)';
+        switch (status) {
+          case 1:
+            newItem.style.backgroundColor = 'white';
+            break;
+          case 2:
+            newItem.style.backgroundColor = '#fff87d';
+            break;
+          case 3:
+            newItem.style.backgroundColor = 'rgb(255,167,167)';
+            nextTaskButton.style.display  = 'none';
+            break;
         }
 
-        if (status == 3) {
-          nextTaskButton.style.display = 'none';
-        }
-        if(list == 'todo-list') {
-          todoList.appendChild(taskDiv);
-        }
-        if (list == 'doing-list') {
-          doingList.appendChild(taskDiv);
-        }
-        if (list == 'completed-list') {
-          completedList.appendChild(taskDiv);
-          nextTaskButton.style.display = 'none';
+        switch (list) {
+          case 'todo-list':
+            todoList.appendChild(taskDiv);
+            break;
+          case 'doing-list':
+            doingList.appendChild(taskDiv);
+            break;
+          case 'completed-list':
+            completedList.appendChild(taskDiv);
+            nextTaskButton.style.display = 'none';
+            break;
         }
       });
     };
@@ -161,30 +165,42 @@ function showContent(page) {
       );
       alert("Failed to load tasks. Please refresh the page.");
     };
+  } else {
+    throw new Error("Page not found!");
   }
 }
 
 function collapseList(list) {
-  const taskDivsInList = list.childNodes;
+  const tasksInsideList = list.childNodes;
 
-  for (var i = 0; i < taskDivsInList.length; i++) {
-    if (taskDivsInList[i].children[1].classList == 'hidden') {
-      taskDivsInList[i].children[0].style.display = 'none';
-      taskDivsInList[i].children[1].classList = '';
-      taskDivsInList[i].children[1].style.display = 'block';
-      taskDivsInList[i].children[0].onclick = '';
+  for (var i = 0; i < tasksInsideList.length; i++) {
+    if (tasksInsideList[i].children[1].classList == 'hidden') {
+      tasksInsideList[i].children[0].style.display = 'none';
+      tasksInsideList[i].children[1].classList = '';
+      tasksInsideList[i].children[1].style.display = 'block';
     } else {
-      taskDivsInList[i].children[0].style.display = 'block';
-      taskDivsInList[i].children[1].classList = 'hidden';
-      taskDivsInList[i].children[1].style.display = 'none';
-      taskDivsInList[i].children[0].onclick = (e) => { collapseListItem(e.target, e.target.nextSibling) };
+      tasksInsideList[i].children[0].style.display = 'block';
+      tasksInsideList[i].children[1].classList = 'hidden';
+      tasksInsideList[i].children[1].style.display = 'none';
+      tasksInsideList[i].children[0].onclick = '';
+      tasksInsideList[i].children[0].onclick = (e) => { collapseListItem(e.target, e.target.nextSibling) };
     }
   }
 }
 
+function hideListItem(item) {
+  let _item = document.getElementById(`task-div-element-${item.id}`);
+  
+  _item.children[0].style.display = 'block';
+  _item.children[1].classList = 'hidden';
+  _item.children[1].style.display = 'none';
+  _item.children[0].onclick = '';
+  _item.children[0].onclick = (e) => { collapseListItem(e.target, e.target.nextSibling) };
+}
+
 function collapseListItem(title, item) {
   title.style.display = 'none';
-  //item.classList = '';
+  item.classList = '';
   item.style.display = 'block';
 }
 
@@ -283,31 +299,47 @@ function openModal(option) {
 }
 
 function editTask(taskId) {
-    const transaction       = db.transaction("tasks", "readwrite");
-    const objectStore       = transaction.objectStore("tasks");
-    const request           = objectStore.get(taskId);
-    let taskTitle           = document.getElementById("taskTitle");
-    let taskType            = document.getElementById("taskType");
-    let taskDescription     = document.getElementById("taskDescription");
-    let taskExpirationDate  = document.getElementById("taskExpirationDate");
-
-    request.onsuccess = function (event) {
-        const objectFromDb        = event.target.result;
-    
-        taskTitle.value           = objectFromDb["title"];
-        taskType.value            = objectFromDb["type"];
-        taskExpirationDate.value  = objectFromDb["expirationDate"];
-        taskDescription.value     = objectFromDb["description"];
-    };
-    document.getElementById('editTask').onclick = ''; // reset
-    document.getElementById('editTask').onclick = (e) => {
-        saveTaskEdition([taskTitle.value, taskType.value, taskExpirationDate.value, taskDescription.value]);
+  const transaction        = db.transaction("tasks", "readwrite");
+  const objectStore        = transaction.objectStore("tasks");
+  const request            = objectStore.get(taskId);
+  let taskTitle            = document.getElementById("taskTitle");
+  let taskType             = document.getElementById("taskType");
+  let taskDescription      = document.getElementById("taskDescription");
+  let taskExpirationDate   = document.getElementById("taskExpirationDate");
+  
+  request.onsuccess = function (event) {
+    const objectFromDb        = event.target.result;
+    taskTitle.value           = objectFromDb["title"];
+    taskType.value            = objectFromDb["type"];
+    taskExpirationDate.value  = objectFromDb["expirationDate"];
+    taskDescription.value     = objectFromDb["description"];
+  };
+  
+  document.getElementById('editTask').onclick = ''; // reset
+  document.getElementById('editTask').onclick = () => {
+    let allTheFieldsHasValue = true; 
+    if (taskTitle.value !== '' && taskType.value !== '' && taskExpirationDate.value !== '' && taskDescription.value !== '') {
+      allTheFieldsHasValue = true;
+    } else {
+      allTheFieldsHasValue = false;
     }
-    document.getElementById("taskId").textContent = taskId;
-    openModal("edit");
+    if (allTheFieldsHasValue) {
+      saveTaskEdition([taskTitle.value, taskType.value, taskExpirationDate.value, taskDescription.value]);
+    } else {
+      alert("All the fields must have an value!");
+    }
+  }
+  
+  document.getElementById("taskId").textContent = taskId;
+  openModal("edit");
 }
 
 function saveTaskEdition(editedValues) {
+  console.log(editedValues);
+  if(editedValues.length !== 4) {
+    return alert('All inputs must have an value!');
+  }
+
   const taskId    = document.getElementById("taskId").textContent;
   var transaction = db.transaction("tasks", "readwrite");
   var objectStore = transaction.objectStore("tasks");
@@ -339,7 +371,8 @@ function saveTaskEdition(editedValues) {
 
 function deleteTask() {
   taskId = document.getElementById("taskId").textContent;
-  taskName = document.getElementById(taskId).childNodes[2].textContent;
+  taskName = document.getElementById(taskId).childNodes[4].textContent;
+  
   taskList = document.querySelectorAll(".task-list li");
 
   if (confirm("Are you sure you want to delete this task?\nTask name: " + taskName)) {
@@ -373,14 +406,14 @@ function saveTask() {
   let list = 'todo-list';
   let status = 1;
 
-  if (title && expirationDate && description) {
+  if (title && type && expirationDate && description) {
     const transaction = db.transaction(["tasks"], "readwrite");
     const objectStore = transaction.objectStore("tasks");
     const task = { id, creationDate, title, type, description, expirationDate, list, status};
 
     const addRequest = objectStore.add(task);
 
-    addRequest.onsuccess = function (event) {
+    addRequest.onsuccess = function () {
       showContent("task");
     };
 
@@ -397,13 +430,12 @@ function saveTask() {
 
 function clearModal() {
   document.getElementById("taskTitle").value = "";
-  document.getElementById("taskType").value = "Work";
+  document.getElementById("taskType").value = "";
   document.getElementById("taskExpirationDate").value = "";
   document.getElementById("taskDescription").value = "";
 }
 
 function convertDate(dateString) {
   let dateParts = dateString.split("-");
-  let swapped = [dateParts[2], dateParts[1], dateParts[0]];
-  return swapped.join("/");
+  return [dateParts[2], dateParts[1], dateParts[0]].join("/");
 }
