@@ -36,6 +36,10 @@ initIndexedDB();
 
 let db;
 
+window.onscroll = function() {
+  scrollFunction();
+};
+
 function showContent(page) {
   var content = document.getElementById("page-content");
   if (page === "home") {
@@ -44,21 +48,22 @@ function showContent(page) {
     content.innerHTML = `
                 <div class="task-list-container">
                     <div class="task-list" ondrop="drop(event)" ondragover="allowDrop(event)">
-                        <h2 onclick="collapseList(tasks)">Tasks</h2>
+                    <h2 onclick="collapseList(tasks)">Tasks</h2>
                         <button class="add-btn" onclick="openModal('create')">Add Task</button>
                         <ul id="tasks"></ul>
                     </div>
                     <div class="task-list" ondrop="drop(event)" ondragover="allowDrop(event)">
-                        <div></div>
-                        <h2 onclick="collapseList(doing)">Doing</h2>
-                        <ul id="doing"></ul>
+                    <div></div>
+                    <h2 onclick="collapseList(doing)">Doing</h2>
+                    <ul id="doing"></ul>
                     </div>
                     <div class="task-list" ondrop="drop(event)" ondragover="allowDrop(event)">
-                        <div></div>
+                    <div></div>
                         <h2 onclick="collapseList(completed)">Completed</h2>
                         <ul id="completed"></ul>
                     </div>
                 </div>
+                <button id="scrollToTopBtn" onclick="scrollToTop()">Go up</button>
             `;
     const transaction   = db.transaction(["tasks"], "readonly");
     const objectStore   = transaction.objectStore("tasks");
@@ -168,6 +173,23 @@ function showContent(page) {
   } else {
     throw new Error("Page not found!");
   }
+}
+
+function scrollFunction() {
+  const scrollToTopBtn = document.getElementById("scrollToTopBtn");
+
+  if (document.body.scrollTop > 100 || document.documentElement.scrollTop > 100) {
+    scrollToTopBtn.style.display = "block";
+  } else {
+    scrollToTopBtn.style.display = "none";
+  }
+}
+
+function scrollToTop() {
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
 }
 
 function collapseList(list) {
