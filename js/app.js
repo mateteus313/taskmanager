@@ -1,40 +1,58 @@
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", function () {
-    navigator.serviceWorker
-      .register("/serviceWorker.js")
-      .then((res) => {
+const verifyServiceWorker = async () => {
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", async function () {
+      try {
+        const response = await navigator.serviceWorker.register("/serviceWorker.js");
         console.log("service worker registered");
-        res.sync.register('sync-notification');
-      })
-      .catch((err) => console.log("service worker not registered", err));
-  });
-}
-
-function initIndexedDB() {
-  const dbName = "task-manager";
-  const request = indexedDB.open(dbName, 1); // Version 1
-
-  request.onerror = function (event) {
-    console.error("Error opening IndexedDB database:", event.target.error);
-  };
-
-  request.onsuccess = function (event) {
-    db = event.target.result;
-  };
-
-  request.onupgradeneeded = function (event) {
-    const db = event.target.result;
-    const objectStore = db.createObjectStore("tasks", {
-      keyPath: "id",
-      autoIncrement: true,
+        await response.sync.register('sync-notification');
+      } catch (error) {
+        console.log("service worker not registered", error);
+      }
     });
-    objectStore.createIndex("title", "title", { unique: false });
-  };
+  }
 }
-
-initIndexedDB();
 
 let db;
+
+const initIndexedDB = async () => {
+  const dbName = "task-manager";
+
+  try {
+    db = await openIndexedDB(dbName, 1);
+    console.log("IndexedDB initialized successfully");
+    return db;
+  } catch (error) {
+    console.error("Error opening IndexedDB database:", error);
+    throw error;
+  }
+};
+
+const openIndexedDB = (dbName, version) => {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(dbName, version);
+
+    request.onerror = (event) => {
+      reject(event.target.error);
+    };
+
+    request.onsuccess = (event) => {
+      resolve(event.target.result);
+    };
+
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      const objectStore = db.createObjectStore("tasks", {
+        keyPath: "id",
+        autoIncrement: true,
+      });
+
+      objectStore.createIndex("title", "title", { unique: false });
+    };
+  });
+};
+
+verifyServiceWorker();
+initIndexedDB();
 
 window.onscroll = function() {
   scrollFunction();
@@ -102,7 +120,7 @@ function showContent(page) {
                               <br>
                               <em>${type}</em>
                               <br>
-                              ${description}
+                              <p>${description}</p>
                               <br>
                               <hr>`;
 

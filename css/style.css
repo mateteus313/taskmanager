@@ -1,6 +1,8 @@
 body {
   margin: 0;
   font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
 }
 
 .task-top-bar {
@@ -9,10 +11,10 @@ body {
   padding: 15px;
   text-align: center;
   font-size: 24px;
+  position: relative;
 }
 
 .task-container {
-  display: flex;
   flex-wrap: wrap;
 }
 
@@ -53,6 +55,7 @@ body {
   flex-wrap: wrap;
   justify-content: space-around;
   height: 95%;
+  text-align: center;
 }
 
 .task-list {
@@ -61,10 +64,6 @@ body {
   padding: 15px;
   border: 1px solid #ccc;
   border-radius: 5px;
-}
-
-.task-list-container {
-  text-align: center;
 }
 
 .task-list ul {
@@ -80,6 +79,18 @@ body {
   border: 1px solid #ccc;
   border-radius: 3px;
   cursor: move;
+}
+
+.task-list li p {
+  word-wrap: break-word;
+}
+
+.task-list li em {
+  word-wrap: break-word;
+}
+
+.task-list li strong {
+  word-wrap: break-word;
 }
 
 .task-edit-button {
@@ -138,19 +149,26 @@ body {
 }
 
 @media (max-width: 1920px) {
+  .task-container {
+    display: flex;
+    flex-wrap: nowrap;
+  }
+
   .task-sidebar {
     min-height: 100vh;
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 880px) {
   .task-sidebar {
     width: 100%;
     min-height: 5vh;
   }
 
   .task-container {
+    flex-wrap: wrap;
     flex-direction: column;
+    display: block;
   }
 
   .task-list {

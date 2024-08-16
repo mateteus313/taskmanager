@@ -45,9 +45,8 @@ function checkDate(date) {
 
   dateToCheck.setDate(dateToCheck.getDate() + 1);
 
-  const uniqueTodayId = today.getFullYear() + today.getMonth() + today.getDay();
-  const uniqueDateToCheckId =
-    dateToCheck.getFullYear() + dateToCheck.getMonth() + dateToCheck.getDay();
+  const uniqueTodayId = today.getFullYear() + today.getMonth() + today.getDate();
+  const uniqueDateToCheckId = dateToCheck.getFullYear() + dateToCheck.getMonth() + dateToCheck.getDate();
 
   if (uniqueTodayId > uniqueDateToCheckId) {
     return "expired";
