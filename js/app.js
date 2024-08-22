@@ -1,196 +1,152 @@
-const verifyServiceWorker = async () => {
+const verifyServiceWorker = () => {
   if ("serviceWorker" in navigator) {
-    window.addEventListener("load", async function () {
-      try {
-        const response = await navigator.serviceWorker.register("/serviceWorker.js");
-        console.log("service worker registered");
-        await response.sync.register('sync-notification');
-      } catch (error) {
-        console.log("service worker not registered", error);
-      }
-    });
+    navigator.serviceWorker
+      .register("/serviceWorker.js")
+      .then((registration) => {
+        registration.addEventListener("updatefound", () => {
+          const installingWorker = registration.installing;
+          console.log(
+            "A new service worker is being installed:",
+            installingWorker,
+          );
+  
+        });
+        registration.sync.register('sync-notification');
+      })
+      .catch((error) => {
+        console.error(`Service worker registration failed: ${error}`);
+      });
+  } else {
+    console.error("Service workers are not supported.");
   }
 }
 
 let db;
+function openIndexedDB() {
+  const request = indexedDB.open("task-manager", 1);
 
-const initIndexedDB = async () => {
-  const dbName = "task-manager";
+  request.onsuccess = (event) => {
+    console.log('Success');
+    db = event.target.result;
 
-  try {
-    db = await openIndexedDB(dbName, 1);
-    console.log("IndexedDB initialized successfully");
-    return db;
-  } catch (error) {
-    console.error("Error opening IndexedDB database:", error);
-    throw error;
-  }
+    showContent();
+  };
+
+  request.onerror = (event) => {
+    console.log('Error', event);
+  };
+
+  request.onupgradeneeded = (event) => {
+    const db = request.result;
+    const objectStore = db.createObjectStore("tasks", {
+      keyPath: "id",
+      autoIncrement: true,
+    });
+
+    objectStore.createIndex("title", "title", { unique: false });
+  };
 };
-
-const openIndexedDB = (dbName, version) => {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(dbName, version);
-
-    request.onerror = (event) => {
-      reject(event.target.error);
-    };
-
-    request.onsuccess = (event) => {
-      resolve(event.target.result);
-    };
-
-    request.onupgradeneeded = (event) => {
-      const db = event.target.result;
-      const objectStore = db.createObjectStore("tasks", {
-        keyPath: "id",
-        autoIncrement: true,
-      });
-
-      objectStore.createIndex("title", "title", { unique: false });
-    };
-  });
-};
-
-verifyServiceWorker();
-initIndexedDB();
 
 window.onscroll = function() {
   scrollFunction();
 };
 
-function showContent(page) {
+function showContent() {
   var content = document.getElementById("page-content");
-  if (page === "home") {
-    content.innerHTML = "<h1>Home</h1><p>Welcome.</p>";
-  } else if (page === "task") {
-    content.innerHTML = `
-                <div class="task-list-container">
-                    <div class="task-list" ondrop="drop(event)" ondragover="allowDrop(event)">
-                    <h2 onclick="collapseList(tasks)">Tasks</h2>
-                        <button class="add-btn" onclick="openModal('create')">Add Task</button>
-                        <ul id="tasks"></ul>
-                    </div>
-                    <div class="task-list" ondrop="drop(event)" ondragover="allowDrop(event)">
-                    <div></div>
-                    <h2 onclick="collapseList(doing)">Doing</h2>
-                    <ul id="doing"></ul>
-                    </div>
-                    <div class="task-list" ondrop="drop(event)" ondragover="allowDrop(event)">
-                    <div></div>
-                        <h2 onclick="collapseList(completed)">Completed</h2>
-                        <ul id="completed"></ul>
-                    </div>
-                </div>
-                <button id="scrollToTopBtn" onclick="scrollToTop()">Go up</button>
-            `;
-    const transaction   = db.transaction(["tasks"], "readonly");
-    const objectStore   = transaction.objectStore("tasks");
-    const getAllRequest = objectStore.getAll();
 
-    getAllRequest.onsuccess = function (event) {
-      const tasks       = event.target.result;
+  content.innerHTML = `
+              <div class="task-list-container">
+                  <div class="task-list" ondrop="drop(event)" ondragover="allowDrop(event)">
+                  <h2 onclick="collapseList(tasks)">Tasks</h2>
+                      <button class="add-btn" onclick="openModal('create')">Add Task</button>
+                      <div id="tasks"></div>
+                  </div>
+                  <div class="task-list" ondrop="drop(event)" ondragover="allowDrop(event)">
+                  <div></div>
+                  <h2 onclick="collapseList(doing)">Doing</h2>
+                  <div id="doing"></div>
+                  </div>
+                  <div class="task-list" ondrop="drop(event)" ondragover="allowDrop(event)">
+                  <div></div>
+                      <h2 onclick="collapseList(completed)">Completed</h2>
+                      <div id="completed"></div>
+                  </div>
+              </div>
+              <button id="scrollToTopBtn" onclick="scrollToTop()">Go up</button>
+          `;
+  const transaction   = db.transaction(["tasks"], "readonly");
+  const objectStore   = transaction.objectStore("tasks");
+  const getAllRequest = objectStore.getAll();
 
-      let todoList      = document.getElementById("tasks");
-      let doingList     = document.getElementById("doing");
-      let completedList = document.getElementById("completed");
+  getAllRequest.onsuccess = function (event) {
+    const tasks = event.target.result;
 
-      tasks.forEach((task) => {
-        let newItem             = document.createElement("li");
-        let editButton          = document.createElement("button");
-        let nextTaskButton      = document.createElement("button");
-        let expirationDateLabel = document.createElement("span");
-        let taskFooterDiv       = document.createElement("div");
-        let taskDiv             = document.createElement("div");
-        let taskDivTitle        = document.createElement("h2");
-        let creationDate        = task["creationDate"];
-        let title               = task["title"];
-        let type                = task["type"];
-        let description         = task["description"];
-        let expirationDate      = task["expirationDate"];
-        let id                  = task["id"];
-        let list                = task["list"];
-        let status              = task["status"];
+    tasks.forEach((task) => {
+      let newItem             = document.createElement("div");
+      let editButton          = document.createElement("button");
+      let nextTaskButton      = document.createElement("button");
+      let expirationDateLabel = document.createElement("span");
+      let taskFooterDiv       = document.createElement("div");
+      let taskDiv             = document.createElement("div");
+      let taskDivTitle        = document.createElement("h2");
+      let creationDate        = task["creationDate"];
+      let title               = task["title"];
+      let type                = task["type"];
+      let description         = task["description"];
+      let expirationDate      = task["expirationDate"];
+      let id                  = task["id"];
+      let list                = task["list"];
+      let status              = task["status"];
 
-        newItem.setAttribute("draggable", true);
-        newItem.setAttribute("ondragstart", "drag(event)");
-        newItem.id = id;
-        newItem.innerHTML =   `<div class="task-list-header" onclick="hideListItem(${id})">${creationDate}</div>
-                              <hr>
-                              <strong>${title}</strong>
-                              <br>
-                              <em>${type}</em>
-                              <br>
-                              <p>${description}</p>
-                              <br>
-                              <hr>`;
+      newItem.setAttribute("draggable", true);
+      newItem.setAttribute("ondragstart", "drag(event)");
+      newItem.id = id;
+      newItem.innerHTML =   `<div class="task-list-header" onclick="hideListItem(${id})">${creationDate}</div>
+                            <hr>
+                            <strong>${title}</strong>
+                            <br>
+                            <em>${type}</em>
+                            <br>
+                            <p>${description}</p>
+                            <br>
+                            <hr>`;
 
-        editButton.classList.add("task-edit-button");
-        editButton.onclick = () => {
-          editTask(id);
-        };
-        editButton.innerHTML = "Edit";
+      editButton.classList.add("task-edit-button");
+      editButton.onclick = () => {
+        editTask(id);
+      };
+      editButton.innerHTML = "Edit";
 
-        expirationDateLabel.id = expirationDate;
-        expirationDateLabel.innerHTML = convertDate(expirationDate);
-        expirationDateLabel.classList.add("expiration-date-label");
+      expirationDateLabel.id = expirationDate;
+      expirationDateLabel.innerHTML = convertDate(expirationDate);
+      expirationDateLabel.classList.add("expiration-date-label");
 
-        nextTaskButton.innerHTML = ">";
-        nextTaskButton.id = `next-task-list-button-${id}`;
-        nextTaskButton.onclick = () => {
-          nextTaskList(id);
-        }
-        nextTaskButton.classList.add("next-task-list-button");
+      nextTaskButton.innerHTML = ">";
+      nextTaskButton.id = `next-task-list-button-${id}`;
+      nextTaskButton.onclick = () => {
+        nextTaskList(id);
+      }
+      nextTaskButton.classList.add("next-task-list-button");
 
-        taskFooterDiv.classList.add("task-footer");
-        taskFooterDiv.append(editButton, expirationDateLabel, nextTaskButton);
+      taskFooterDiv.classList.add("task-footer");
+      taskFooterDiv.append(editButton, expirationDateLabel, nextTaskButton);
 
-        newItem.append(taskFooterDiv);
+      newItem.append(taskFooterDiv);
 
-        taskDivTitle.innerHTML = title;
-        taskDivTitle.style.display = 'none';
-        taskDivTitle.classList = "task-div-title";
-        taskDiv.id = `task-div-element-${id}`;
-        taskDiv.append(taskDivTitle);
-        taskDiv.append(newItem);
+      taskDivTitle.innerHTML = title;
+      taskDivTitle.style.display = 'none';
+      taskDivTitle.classList = "task-div-title";
+      taskDiv.id = `task-div-element-${id}`;
+      taskDiv.append(taskDivTitle);
+      taskDiv.append(newItem);
 
-        switch (status) {
-          case 1:
-            newItem.style.backgroundColor = 'white';
-            break;
-          case 2:
-            newItem.style.backgroundColor = '#fff87d';
-            break;
-          case 3:
-            newItem.style.backgroundColor = 'rgb(255,167,167)';
-            nextTaskButton.style.display  = 'none';
-            break;
-        }
+      syncTask({newItem, task, id, list, status, nextTaskButton, taskDiv});
+    });
+  };
 
-        switch (list) {
-          case 'todo-list':
-            todoList.appendChild(taskDiv);
-            break;
-          case 'doing-list':
-            doingList.appendChild(taskDiv);
-            break;
-          case 'completed-list':
-            completedList.appendChild(taskDiv);
-            nextTaskButton.style.display = 'none';
-            break;
-        }
-      });
-    };
-
-    getAllRequest.onerror = function (event) {
-      console.error(
-        "Error retrieving tasks from IndexedDB:",
-        event.target.error
-      );
-      alert("Failed to load tasks. Please refresh the page.");
-    };
-  } else {
-    throw new Error("Page not found!");
-  }
+  getAllRequest.onerror = function (event) {
+    alert("Failed to load tasks. Please refresh the page:", event.target.error);
+  };
 }
 
 function scrollFunction() {
@@ -260,7 +216,7 @@ function nextTaskList(id) {
       console.log("Error:", event.target.error);
     };
   }
-  showContent('task');
+  showContent();
 }
 
 function allowDrop(event) {
@@ -313,6 +269,8 @@ function drop(event) {
       requestUpdate.onerror = (event) => {
         console.log("Error:", event.target.error);
       };
+
+      showContent();
     }
   }
 }
@@ -375,7 +333,6 @@ function editTask(taskId) {
 }
 
 function saveTaskEdition(editedValues) {
-  console.log(editedValues);
   if(editedValues.length !== 4) {
     return alert('All inputs must have an value!');
   }
@@ -395,18 +352,12 @@ function saveTaskEdition(editedValues) {
 
     const requestUpdate = objectStore.put(objectToUpdate);
 
-    requestUpdate.onsuccess = (event) => {
+    requestUpdate.onsuccess = () => {
       alert("Task updated successfully!");
-    };
-
-    requestUpdate.onerror = (event) => {
-      alert("Error updating task:", event.target.error);
+      showContent();
+      location.reload();
     };
   };
-
-  $("#taskModal").modal("hide");
-  showContent("task");
-  clearModal();
 }
 
 function deleteTask() {
@@ -428,7 +379,7 @@ function deleteTask() {
           alert("We can not delete this task.");
         };
         
-        showContent("task");
+        showContent();
       }
       $("#taskModal").modal("hide");
       clearModal();
@@ -454,7 +405,7 @@ function saveTask() {
     const addRequest = objectStore.add(task);
 
     addRequest.onsuccess = function () {
-      showContent("task");
+      showContent();
     };
 
     addRequest.onerror = function (event) {
@@ -479,3 +430,71 @@ function convertDate(dateString) {
   let dateParts = dateString.split("-");
   return [dateParts[2], dateParts[1], dateParts[0]].join("/");
 }
+
+function syncTask({newItem, task, id, list, status, nextTaskButton, taskDiv}) {
+  const transaction   = db.transaction(["tasks"], "readwrite");
+  const objectStore   = transaction.objectStore("tasks");
+  const getRequest    = objectStore.get(id);
+  const todoList      = document.getElementById("tasks");
+  const doingList     = document.getElementById("doing");
+  const completedList = document.getElementById("completed");
+
+  getRequest.onsuccess = () => {
+    const taskToUpdate = task;
+
+    const currDate = new Date();
+    const dateToCheck = new Date(task.expirationDate);
+
+    dateToCheck.setDate(dateToCheck.getDate() + 1);
+
+    const uniqueTodayId = currDate.getFullYear() + currDate.getMonth() + currDate.getDate();
+    const uniqueDateToCheckId = dateToCheck.getFullYear() + dateToCheck.getMonth() + dateToCheck.getDate();
+
+    if (uniqueTodayId > uniqueDateToCheckId) {
+      taskToUpdate.status = 3;
+    }
+    if (uniqueTodayId == uniqueDateToCheckId) {
+      taskToUpdate.status = 2;
+    }
+    if (uniqueTodayId < uniqueDateToCheckId) {
+      currDate.setDate(uniqueTodayId + 2);
+      if (currDate > uniqueDateToCheckId) {
+        taskToUpdate.status = 2;
+      } else {
+        taskToUpdate.status = 1;
+      }
+    }
+
+    switch (status) {
+      case 1:
+        newItem.style.backgroundColor = 'white';
+        break;
+      case 2:
+        newItem.style.backgroundColor = '#fff87d';
+        break;
+      case 3:
+        newItem.style.backgroundColor = 'rgb(255, 167, 167)';
+        nextTaskButton.style.display  = 'none';
+        break;
+    }
+
+    switch (list) {
+      case 'todo-list':
+        todoList.appendChild(taskDiv);
+        break;
+      case 'doing-list':
+        doingList.appendChild(taskDiv);
+        break;
+      case 'completed-list':
+        completedList.appendChild(taskDiv);
+        newItem.style.backgroundColor = 'rgb(115, 211, 112)';
+        nextTaskButton.style.display = 'none';
+        break;
+    }
+
+    const updateRequest = objectStore.put(taskToUpdate);
+  }
+}
+
+verifyServiceWorker();
+openIndexedDB();

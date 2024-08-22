@@ -24,17 +24,11 @@ async function syncTasksAndNotify() {
         body: `A tarefa: ${task.title} irá expirar amanhã!`,
         icon: "images/icons/icon32x32.png",
       });
-      setTaskStatus(task, 2);
     } else if (dateInfo == "almost expired") {
       self.registration.showNotification("Tarefa Pendente", {
         body: `A tarefa: ${task.title} irá expirar hoje!`,
         icon: "images/icons/icon32x32.png",
       });
-      setTaskStatus(task, 2);
-    } else if (dateInfo == "expired") {
-      setTaskStatus(task, 3);
-    } else if (dateInfo == "not expired") {
-      setTaskStatus(task, 1);
     }
   });
 }
@@ -56,7 +50,8 @@ function checkDate(date) {
   }
   if (uniqueTodayId < uniqueDateToCheckId) {
     today.setDate(uniqueTodayId + 2);
-    if (uniqueTodayId > uniqueDateToCheckId) {
+
+    if (today > uniqueDateToCheckId) {
       return "tomorrow";
     } else {
       return "not expired";
@@ -87,21 +82,4 @@ async function getTasksFromIndexedDB() {
       reject(openRequest.error);
     };
   });
-}
-
-async function setTaskStatus(task, status) {
-  const openRequest = indexedDB.open("task-manager", 1);
-  const objectToUpdate = task;
-  objectToUpdate.status = status;
-
-  openRequest.onsuccess = (event) => {
-    const db = event.target.result;
-    const transaction = db.transaction("tasks", "readwrite");
-    const store = transaction.objectStore("tasks");
-    const updateRequest = store.put(objectToUpdate);
-
-    updateRequest.onerror = () => {
-      console.log("Erro ao atualizar status da tarefa: " + updateRequest.error);
-    };
-  };
 }

@@ -1,16 +1,28 @@
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&display=swap');
+
+:root {
+  --default-box-shadow: rgba(0, 0, 0, 0.25) 0px 54px 55px, rgba(0, 0, 0, 0.12) 0px -12px 30px, rgba(0, 0, 0, 0.12) 0px 4px 6px, rgba(0, 0, 0, 0.17) 0px 12px 13px, rgba(0, 0, 0, 0.09) 0px -3px 5px;
+}
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
   font-family: "Lora", serif;
   font-style: normal;
+  font-size: 1rem;
 }
 
 body {
-  margin: 0;
-  font-family: Arial, sans-serif;
   display: flex;
   flex-direction: column;
+}
+
+hr {
+  border: none;
+  height: 1px;
+  color: #333;
+  background-color: #333;
 }
 
 .task-top-bar {
@@ -74,31 +86,37 @@ body {
   border-radius: 5px;
 }
 
-.task-list ul {
-  list-style-type: none;
-  padding: 0;
-}
-
-.task-list li {
-  position: relative;
-  background-color: #fff;
-  margin: 5px;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 3px;
+#tasks > div{
+  margin-top: 1rem;
+  box-shadow: var(--default-box-shadow);
   cursor: move;
 }
 
-.task-list li p {
-  word-wrap: break-word;
+#tasks > div > div {
+  padding: 1rem;
+  word-break: break-all;
 }
 
-.task-list li em {
-  word-wrap: break-word;
+#doing > div {
+  margin-top: 1rem;
+  box-shadow: var(--default-box-shadow);
+  cursor: move;
 }
 
-.task-list li strong {
-  word-wrap: break-word;
+#doing > div > div{
+  padding: 1rem;
+  word-break: break-all;
+}
+
+#completed > div {
+  margin-top: 1rem;
+  box-shadow: var(--default-box-shadow);
+  cursor: move;
+}
+
+#completed > div > div {
+  padding: 1rem;
+  word-break: break-all;
 }
 
 .task-edit-button {
@@ -128,7 +146,7 @@ body {
   width: 100%;
   margin-top: 10px;
   padding: 10px;
-  background-color: #007bff;
+  background-color: #034e9e;
   color: white;
   border: none;
   border-radius: 5px;
