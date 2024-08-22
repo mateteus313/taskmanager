@@ -447,7 +447,7 @@ function syncTask({newItem, task, id, list, status, nextTaskButton, taskDiv}) {
 
     dateToCheck.setDate(dateToCheck.getDate() + 1);
 
-    const uniqueTodayId = currDate.getFullYear() + currDate.getMonth() + currDate.getDate();
+    let uniqueTodayId = currDate.getFullYear() + currDate.getMonth() + currDate.getDate();
     const uniqueDateToCheckId = dateToCheck.getFullYear() + dateToCheck.getMonth() + dateToCheck.getDate();
 
     if (uniqueTodayId > uniqueDateToCheckId) {
@@ -457,8 +457,9 @@ function syncTask({newItem, task, id, list, status, nextTaskButton, taskDiv}) {
       taskToUpdate.status = 2;
     }
     if (uniqueTodayId < uniqueDateToCheckId) {
-      currDate.setDate(uniqueTodayId + 2);
-      if (currDate > uniqueDateToCheckId) {
+        uniqueTodayId += 2;
+      
+      if (uniqueTodayId > uniqueDateToCheckId) {
         taskToUpdate.status = 2;
       } else {
         taskToUpdate.status = 1;

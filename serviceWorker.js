@@ -39,7 +39,7 @@ function checkDate(date) {
 
   dateToCheck.setDate(dateToCheck.getDate() + 1);
 
-  const uniqueTodayId = today.getFullYear() + today.getMonth() + today.getDate();
+  let uniqueTodayId = today.getFullYear() + today.getMonth() + today.getDate();
   const uniqueDateToCheckId = dateToCheck.getFullYear() + dateToCheck.getMonth() + dateToCheck.getDate();
 
   if (uniqueTodayId > uniqueDateToCheckId) {
@@ -49,9 +49,9 @@ function checkDate(date) {
     return "almost expired";
   }
   if (uniqueTodayId < uniqueDateToCheckId) {
-    today.setDate(uniqueTodayId + 2);
+    uniqueTodayId += 2;
 
-    if (today > uniqueDateToCheckId) {
+    if (uniqueTodayId > uniqueDateToCheckId) {
       return "tomorrow";
     } else {
       return "not expired";
